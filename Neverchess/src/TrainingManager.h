@@ -1,52 +1,69 @@
 #pragma once
-#include "BoardState.h"
 #include <queue>
 #include <unordered_map>
-#include "src/SimpleANN.h"
+#include <cstdint>
+#include <optional>
+#include <future>
+#include "nvc.h"
+#include "SimpleANN.h"
 
-struct AlphaBetaEvaluation
+#define HIGH_LABEL 1.0f
+#define LOW_LABEL 0.0f
+
+namespace nvc
 {
-	MoveData move;
-	float evaluatedValue;
-};
+	struct TrainingManagerCreateInfo
+	{
+		int _nGames;
+		int _nRandomMoves;
+		int _nMaxMoves;
+		int _trainSampleRate;
+		int _abDepth;
+	};
 
-class TrainingManager
-{
-private:
-	unsigned long int zobristPieceValues[BOARD_LENGTH * BOARD_LENGTH * 12] = { 0 };
-	unsigned long int zobristTurnValues[2] = { 0 };
-	unsigned long int zobristKingMovedValues[2] = { 0 };
-	unsigned long int zobristQRookMovedValues[2] = { 0 };
-	unsigned long int zobristKRookMovedValues[2] = { 0 };
-	unsigned long int zobristEnPassantValues[9] = { 0 };
-	std::queue<AlphaBetaEvaluation> alphaBetaHistory;
-	std::unordered_map<unsigned long int, int> hashPositions;
-	std::unordered_map<unsigned long int, AlphaBetaEvaluation> boardEvaluations;
-	int availableThreads = 0;
-	bool whiteWin = false;
-	bool blackWin = false;
+	class TrainingManager
+	{
+	public:
+		TrainingManager(const TrainingManagerCreateInfo createInfo)
+		{
+			initializeZobristValues();
+			_games.resize(createInfo._nGames);
+			_nRandomMoves = createInfo._nRandomMoves;
+			_nMaxMoves = createInfo._nMaxMoves;
+			_trainSampleRate = createInfo._trainSampleRate;
+			_abDepth = createInfo._abDepth;
+		}
+		void generateGames(simpleANN::ANNetwork& ann);
+		void train(simpleANN::ANNetwork& ann);
+		void placePiece(PieceCode pieces[], PieceCode pieceCode, int x, int y);
+		void exportANN(simpleANN::ANNetwork& network, std::string fileName);
+		void printBoard(const BoardState& boardState) const;
+		//AnnUtilities::Network importANN			(std::string fileName);
+		std::vector<Game> _games;
 
-	void setANNInput(const BoardState& BoardState, simpleANN::Layer* inputLayer);
-	int positionAppeared(const BoardState& BoardState);
-	void findKing(const PieceCode pieces[], bool turn, int* pos);
-	void playMove(BoardState& BoardState, const MoveData& move);
-	std::vector<BoardState> filterMoves(const BoardState& BoardState, std::vector<MoveData>& moves);
-	unsigned long int zobristHash(const BoardState& BoardState);
-	bool zobristValueExists(unsigned long int v);
-	void checkWinner(const BoardState& BoardState);
-	void printBoard(const BoardState& BoardState) const;
+	private:
+		std::mutex _hashTableLock;
+		int _nRandomMoves;
+		int _nMaxMoves;
+		int _trainSampleRate;
+		int _abDepth;
+		uint32_t _zobristPieceValues[BOARD_LENGTH * BOARD_LENGTH * N_UNIQUE_PIECES] = { 0 };
+		uint32_t _zobristTurnValues[2] = { 0 };
+		uint32_t _zobristKingMovedValues[2] = { 0 };
+		uint32_t _zobristQRookMovedValues[2] = { 0 };
+		uint32_t _zobristKRookMovedValues[2] = { 0 };
+		uint32_t _zobristEnPassantValues[9] = { 0 };
+		std::unordered_map<uint32_t, float> _hashedEvaluations;
 
-public:
-	void train(simpleANN::ANNetwork& ann);
-	void process(BoardState& BoardState, simpleANN::ANNetwork& network, int evaluationDepth, int maxTurns);
-	void evaluate(const BoardState& BoardState, simpleANN::ANNetwork& network, AlphaBetaEvaluation& eval, bool noMoves);
-	void initBoardStatePieces(PieceCode pieces[]);
-	void placePiece(PieceCode pieces[], PieceCode pieceCode, int x, int y);
-	AlphaBetaEvaluation alphaBeta(BoardState& BoardState, simpleANN::ANNetwork& network, int depth, float alpha, float beta);
-	void reset();
-	void resetBoardState(BoardState& boardStateDate);
-	void calculateZobristValues();
-	void exportANN(simpleANN::ANNetwork& network, std::string fileName);
-	//AnnUtilities::Network importANN			(std::string fileName);
-};
-
+		void processGame(Game& game, simpleANN::ANNetwork& ann);
+		void initializeZobristValues();
+		bool zobristValueExists(uint32_t value);
+		uint32_t hashBoard(const BoardState& boardState);
+		void boardStateToNetworkInput(const BoardState& boardState, float* inputArray);
+		std::optional<float> findHashedBoardState(uint32_t hash);
+		void insertHashedBoardState(uint32_t hash, float value);
+		void playRandomStartMoves(nvc::Game& game);
+		float evaluate(const BoardState& boardState, simpleANN::ANNetwork& network, float* networkInputArray);
+		float alphaBeta(const BoardState& boardState);
+	};
+}

@@ -1,11 +1,11 @@
 #include "Chess.h"
 
-int pieceCodeToSide(const PieceCode& pieceCode)
+int nvc::Chess::pieceCodeToSide(const PieceCode& pieceCode)
 {
 	return (int)pieceCode >> (PIECE_CODE_LENGTH - 1);
 }
 
-std::vector<MoveData> genRawMoves(const BoardState& boardStateData)
+std::vector<nvc::MoveData> nvc::Chess::genRawMoves(const BoardState& boardStateData)
 {
 	std::vector<MoveData> moves;
 	PieceCode piece;
@@ -24,7 +24,7 @@ std::vector<MoveData> genRawMoves(const BoardState& boardStateData)
 	return moves;
 }
 
-void genRawPieceMoves		(const BoardState& boardState, std::vector<MoveData>& moves, int x, int y)
+void nvc::Chess::genRawPieceMoves(const BoardState& boardState, std::vector<MoveData>& moves, int x, int y)
 {
 	switch (boardState._pieces[y * BOARD_LENGTH + x])
 	{
@@ -51,7 +51,7 @@ void genRawPieceMoves		(const BoardState& boardState, std::vector<MoveData>& mov
 	}
 }
 
-void genRawMovesKing		(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
+void nvc::Chess::genRawMovesKing(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
 {
 	int xDestination, yDestination, pieceIndex;
 	for (int y = -1; y < 2; ++y)
@@ -103,7 +103,7 @@ void genRawMovesKing		(std::vector<MoveData>& moves, const BoardState& boardStat
 	}
 }
 
-void genRawMovesQueen		(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
+void nvc::Chess::genRawMovesQueen(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
 {
 	genMovesDir(moves, boardState, xPiece, yPiece, -1, 0);
 	genMovesDir(moves, boardState, xPiece, yPiece, 0, 1);
@@ -115,7 +115,7 @@ void genRawMovesQueen		(std::vector<MoveData>& moves, const BoardState& boardSta
 	genMovesDir(moves, boardState, xPiece, yPiece, 1, -1);
 }
 
-void genRawMovesBishop		(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
+void nvc::Chess::genRawMovesBishop(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
 {
 	genMovesDir(moves, boardState, xPiece, yPiece, -1, -1);
 	genMovesDir(moves, boardState, xPiece, yPiece, -1, 1);
@@ -123,7 +123,7 @@ void genRawMovesBishop		(std::vector<MoveData>& moves, const BoardState& boardSt
 	genMovesDir(moves, boardState, xPiece, yPiece, 1, -1);
 }
 
-void genRawMovesRook		(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
+void nvc::Chess::genRawMovesRook(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
 {
 	genMovesDir(moves, boardState, xPiece, yPiece, -1, 0);
 	genMovesDir(moves, boardState, xPiece, yPiece, 0, 1);
@@ -131,13 +131,13 @@ void genRawMovesRook		(std::vector<MoveData>& moves, const BoardState& boardStat
 	genMovesDir(moves, boardState, xPiece, yPiece, 0, -1);
 }
 
-void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
+void nvc::Chess::genRawMovesKnight(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
 {
 	int x = xPiece - 2;
 	int y = yPiece - 1;
 	const PieceCode* pieces = boardState._pieces;
 	const int turn = boardState._turn;
-	if (x > -1 && y > -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x > -1 && y > -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -147,7 +147,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 		moves.push_back(std::move(move));
 	}
 	y = yPiece + 1;
-	if (x > -1 && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x > -1 && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -157,7 +157,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 		moves.push_back(std::move(move));
 	}
 	x = xPiece + 2;
-	if (x < BOARD_LENGTH && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x < BOARD_LENGTH && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -167,7 +167,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 		moves.push_back(std::move(move));
 	}
 	y = yPiece - 1;
-	if (x < BOARD_LENGTH && y < -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x < BOARD_LENGTH && y < -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -178,7 +178,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 	}
 	x = xPiece - 1;
 	y = yPiece - 2;
-	if (x > -1 && y > -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x > -1 && y > -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -188,7 +188,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 		moves.push_back(std::move(move));
 	}
 	x = xPiece + 1;
-	if (x < BOARD_LENGTH && y > -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x < BOARD_LENGTH && y > -1 && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -198,7 +198,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 		moves.push_back(std::move(move));
 	}
 	y = yPiece + 2;
-	if (x < BOARD_LENGTH && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x < BOARD_LENGTH && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -208,7 +208,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 		moves.push_back(std::move(move));
 	}
 	x = xPiece - 1;
-	if (x > -1 && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || (int)pieces[y * BOARD_LENGTH + x] >> (PIECE_CODE_LENGTH - 1) != turn))
+	if (x > -1 && y < BOARD_LENGTH && (pieces[y * BOARD_LENGTH + x] == PieceCode::EMPTY || pieceCodeToSide(pieces[y * BOARD_LENGTH + x]) != turn))
 	{
 		MoveData move;
 		move.xStart = xPiece;
@@ -219,7 +219,7 @@ void genRawMovesKnight		(std::vector<MoveData>& moves, const BoardState& boardSt
 	}
 }
 
-void genRawMovesPawn		(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
+void nvc::Chess::genRawMovesPawn(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece)
 {
 	const PieceCode* pieces = boardState._pieces;
 	const int turn = boardState._turn;
@@ -327,7 +327,7 @@ void genRawMovesPawn		(std::vector<MoveData>& moves, const BoardState& boardStat
 	}
 }
 
-void genMovesDir			(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece, int xDir, int yDir)
+void nvc::Chess::genMovesDir(std::vector<MoveData>& moves, const BoardState& boardState, int xPiece, int yPiece, int xDir, int yDir)
 {
 	const PieceCode* pieces = boardState._pieces;
 	const int turn = boardState._turn;
@@ -359,7 +359,7 @@ void genMovesDir			(std::vector<MoveData>& moves, const BoardState& boardState, 
 	}
 }
 
-bool shortCastleAvailable	(const BoardState& boardState)
+bool nvc::Chess::shortCastleAvailable(const BoardState& boardState)
 {
 	int row = boardState._turn ? 7 : 0;
 	return !boardState._kingMoved[boardState._turn]
@@ -371,7 +371,7 @@ bool shortCastleAvailable	(const BoardState& boardState)
 		&& !squareThreatened(boardState, 6, row);
 }
 
-bool longCastleAvailable	(const BoardState& boardState)
+bool nvc::Chess::longCastleAvailable(const BoardState& boardState)
 {
 	int row = boardState._turn ? 7 : 0;
 	return !boardState._kingMoved[boardState._turn]
@@ -384,7 +384,7 @@ bool longCastleAvailable	(const BoardState& boardState)
 		&& !squareThreatened(boardState, 4, row);
 }
 
-bool squareThreatened(const BoardState& boardState, int xTarget, int yTarget)
+bool nvc::Chess::squareThreatened(const BoardState& boardState, int xTarget, int yTarget)
 {
 	for (int yBoard = 0; yBoard < BOARD_LENGTH; ++yBoard)
 	{
@@ -399,7 +399,7 @@ bool squareThreatened(const BoardState& boardState, int xTarget, int yTarget)
 	return false;
 }
 
-bool pieceCanThreatenSquare(const BoardState& boardState, int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::pieceCanThreatenSquare(const BoardState& boardState, int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	switch (boardState._pieces[yPiece * BOARD_LENGTH + xPiece])
 	{
@@ -425,12 +425,12 @@ bool pieceCanThreatenSquare(const BoardState& boardState, int xPiece, int yPiece
 	return false;
 }
 
-bool kingCanThreatenSquare(int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::kingCanThreatenSquare(int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	return abs(xTarget - xPiece) <= 1 && abs(yTarget - yPiece) <= 1;
 }
 
-bool queenCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::queenCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	if (!(xTarget == xPiece || yTarget == yPiece || (abs(xTarget - xPiece) == abs(yTarget - yPiece))))
 		return false;
@@ -461,7 +461,7 @@ bool queenCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, in
 	return true;
 }
 
-bool bishopCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::bishopCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	if (abs(xTarget - xPiece) != abs(yTarget - yPiece))
 		return false;
@@ -479,14 +479,14 @@ bool bishopCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, i
 	return true;
 }
 
-bool knightCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::knightCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	if (abs(xTarget - xPiece) == 2 && abs(yTarget - yPiece) == 1 || abs(xTarget - xPiece) == 1 && abs(yTarget - yPiece) == 2)
 		return true;
 	return false;
 }
 
-bool rookCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::rookCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	if (!(xTarget == xPiece || yTarget == yPiece))
 		return false;
@@ -511,7 +511,7 @@ bool rookCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int
 	return true;
 }
 
-bool pawnCanThreatenSquare(int turn, int xPiece, int yPiece, int xTarget, int yTarget)
+bool nvc::Chess::pawnCanThreatenSquare(int turn, int xPiece, int yPiece, int xTarget, int yTarget)
 {
 	int yDir = turn ? 1 : -1;
 	if (yPiece + yDir == yTarget && abs(xTarget - xPiece) == 1)
@@ -519,7 +519,7 @@ bool pawnCanThreatenSquare(int turn, int xPiece, int yPiece, int xTarget, int yT
 	return false;
 }
 
-bool moveIsLegal(const BoardState& boardState, const MoveData& move)
+bool nvc::Chess::moveIsLegal(const BoardState& boardState, const MoveData& move)
 {
 	if (move.xStart < 0 || move.xStart >= BOARD_LENGTH || move.yStart < 0 || move.yStart >= BOARD_LENGTH
 		|| move.xEnd < 0 || move.xEnd >= BOARD_LENGTH || move.yEnd < 0 || move.yEnd >= BOARD_LENGTH)
@@ -555,7 +555,23 @@ bool moveIsLegal(const BoardState& boardState, const MoveData& move)
 	return false;
 }
 
-bool moveIsLegalKing(const BoardState& boardState, const MoveData& move)
+float nvc::Chess::boardValue(const BoardState& boardState)
+{
+	float value = 0.0f;
+	PieceCode piece;
+	for (int y = 0; y < BOARD_LENGTH; ++y)
+	{
+		for (int x = 0; x < BOARD_LENGTH; ++x)
+		{
+			piece = boardState._pieces[y * BOARD_LENGTH + x];
+			if (piece != PieceCode::EMPTY && piece != PieceCode::W_KING && piece != PieceCode::B_KING)
+				value += pieceValues.at(piece);
+		}
+	}
+	return value;
+}
+
+bool nvc::Chess::moveIsLegalKing(const BoardState& boardState, const MoveData& move)
 {
 	int row = boardState._turn == 0 ? 0 : 7;
 	// SHORT CASTLE
@@ -601,7 +617,7 @@ bool moveIsLegalKing(const BoardState& boardState, const MoveData& move)
 	return true;
 }
 
-bool moveIsLegalQueen(const BoardState& boardState, const MoveData& move)
+bool nvc::Chess::moveIsLegalQueen(const BoardState& boardState, const MoveData& move)
 {
 	const PieceCode& target = boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd];
 	if (target != PieceCode::EMPTY && pieceCodeToSide(target) == boardState._turn)
@@ -611,27 +627,73 @@ bool moveIsLegalQueen(const BoardState& boardState, const MoveData& move)
 	return false;
 }
 
-bool moveIsLegalRook(const BoardState& boardState, const MoveData& move)
+bool nvc::Chess::moveIsLegalRook(const BoardState& boardState, const MoveData& move)
 {
+	const PieceCode& target = boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd];
+	if (target != PieceCode::EMPTY && pieceCodeToSide(target) == boardState._turn)
+		return false;
+	if (((move.xStart == move.xEnd) && (move.yStart != move.yEnd) || (move.xStart != move.xEnd) && (move.yStart == move.yEnd)))
+		return squaresAreEmpty(boardState._pieces, move.xStart, move.yStart, move.xEnd, move.yEnd);
 	return false;
 }
 
-bool moveIsLegalBishop(const BoardState& boardState, const MoveData& move)
+bool nvc::Chess::moveIsLegalBishop(const BoardState& boardState, const MoveData& move)
 {
+	const PieceCode& target = boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd];
+	if (target != PieceCode::EMPTY && pieceCodeToSide(target) == boardState._turn)
+		return false;
+	if (abs(move.xEnd - move.xStart) == abs(move.yEnd - move.yStart))
+		return squaresAreEmpty(boardState._pieces, move.xStart, move.yStart, move.xEnd, move.yEnd);
 	return false;
 }
 
-bool moveIsLegalKnight(const BoardState& boardState, const MoveData& move)
+bool nvc::Chess::moveIsLegalKnight(const BoardState& boardState, const MoveData& move)
 {
+	const PieceCode& target = boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd];
+	if (target != PieceCode::EMPTY && pieceCodeToSide(target) == boardState._turn)
+		return false;
+	if (move.xEnd == move.xStart + 2 || move.xEnd == move.xStart - 2)
+		if (move.yEnd == move.yStart + 1 || move.yEnd == move.yStart - 1)
+			return true;
+	if (move.xEnd == move.xStart + 1 || move.xEnd == move.xStart - 1)
+		if (move.yEnd == move.yStart + 2 || move.yEnd == move.yStart - 2)
+			return true;
 	return false;
 }
 
-bool moveIsLegalPawn(const BoardState& boardState, const MoveData& move)
+bool nvc::Chess::moveIsLegalPawn(const BoardState& boardState, const MoveData& move)
 {
+	const PieceCode& target = boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd];
+	int dir = boardState._turn == 0 ? 1 : -1;
+	// EN PASSANT
+	if (move.enPassant
+		&& move.xEnd == boardState._enPassant
+		&& (move.xEnd == move.xStart + 1 || move.xEnd == move.xStart - 1)
+		&& move.yEnd == move.yStart + dir
+		&& move.yStart == (boardState._turn == 0 ? 4 : 3))
+		return true;
+	// DOUBLE MOVE
+	else if (move.doublePawnMove
+		&& move.yStart == (boardState._turn == 0 ? 1 : 6)
+		&& move.xEnd == move.xStart
+		&& move.yEnd == move.yStart + 2 * dir
+		&& boardState._pieces[(move.yStart + dir) * BOARD_LENGTH + move.xStart] == PieceCode::EMPTY
+		&& boardState._pieces[(move.yStart + 2 * dir) * BOARD_LENGTH + move.xStart] == PieceCode::EMPTY)
+		return true;
+	// TAKE
+	else if ((move.xEnd == move.xStart + 1 || move.xEnd == move.xStart - 1)
+		&& move.yEnd == move.yStart + dir
+		&& target != PieceCode::EMPTY
+		&& pieceCodeToSide(target) != boardState._turn)
+		return true;
+	// NORMAL MOVE
+	else if (move.xEnd == move.xStart && move.yEnd == move.yStart + dir
+		&& target == PieceCode::EMPTY)
+		return true;
 	return false;
 }
 
-bool squaresAreEmpty(const PieceCode* pieces, int xStart, int yStart, int xEnd, int yEnd)
+bool nvc::Chess::squaresAreEmpty(const PieceCode* pieces, int xStart, int yStart, int xEnd, int yEnd)
 {
 	int xDir = 0;
 	int yDir = 0;
@@ -660,3 +722,163 @@ bool squaresAreEmpty(const PieceCode* pieces, int xStart, int yStart, int xEnd, 
 	return true;
 }
 
+void nvc::Chess::playMove(BoardState& boardState, const MoveData& move)
+{
+	if (move.longCastle)
+	{
+		int y = boardState._turn ? BOARD_LENGTH - 1 : 0;
+		boardState._pieces[y * BOARD_LENGTH + 2] = boardState._pieces[y * BOARD_LENGTH + 4];
+		boardState._pieces[y * BOARD_LENGTH + 3] = boardState._pieces[y * BOARD_LENGTH];
+		boardState._pieces[y * BOARD_LENGTH + 4] = PieceCode::EMPTY;
+		boardState._pieces[y * BOARD_LENGTH] = PieceCode::EMPTY;
+		boardState._kingMoved[boardState._turn] = true;
+		boardState._qRookMoved[boardState._turn] = true;
+		return;
+	}
+
+	if (move.shortCastle)
+	{
+		int y = boardState._turn ? BOARD_LENGTH - 1 : 0;
+		boardState._pieces[y * BOARD_LENGTH + 6] = boardState._pieces[y * BOARD_LENGTH + 4];
+		boardState._pieces[y * BOARD_LENGTH + 5] = boardState._pieces[y * BOARD_LENGTH + 7];
+		boardState._pieces[y * BOARD_LENGTH + 4] = PieceCode::EMPTY;
+		boardState._pieces[y * BOARD_LENGTH + 7] = PieceCode::EMPTY;
+		boardState._kingMoved[boardState._turn] = true;
+		boardState._kRookMoved[boardState._turn] = true;
+		return;
+	}
+
+	PieceCode piece = boardState._pieces[move.yStart * BOARD_LENGTH + move.xStart];
+	if (piece == PieceCode::W_KING || piece == PieceCode::B_KING)
+		boardState._kingMoved[boardState._turn] = true;
+	else if (piece == PieceCode::W_ROOK || piece == PieceCode::B_ROOK)
+	{
+		if (move.xStart == 0)
+			boardState._qRookMoved[boardState._turn] = true;
+		if (move.xStart == 7)
+			boardState._kRookMoved[boardState._turn] = true;
+	}
+
+	boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd] = boardState._pieces[move.yStart * BOARD_LENGTH + move.xStart];
+	boardState._pieces[move.yStart * BOARD_LENGTH + move.xStart] = PieceCode::EMPTY;
+	if (move.upgrade != PieceCode::EMPTY)
+		boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd] = move.upgrade;
+	if (move.enPassant)
+		boardState._pieces[move.yStart * BOARD_LENGTH + move.xEnd] = PieceCode::EMPTY;
+	if (move.doublePawnMove)
+		boardState._enPassant = move.xStart;
+	else
+		boardState._enPassant = -1;
+	boardState._turn = (boardState._turn + 1) % 2;
+}
+
+void nvc::Chess::playMove(Game& game, const MoveData& move)
+{
+	BoardState& boardState = game._boardState;
+	game._moves.push_back(move);
+	if (move.longCastle)
+	{
+		int y = boardState._turn ? BOARD_LENGTH - 1 : 0;
+		boardState._pieces[y * BOARD_LENGTH + 2] = boardState._pieces[y * BOARD_LENGTH + 4];
+		boardState._pieces[y * BOARD_LENGTH + 3] = boardState._pieces[y * BOARD_LENGTH];
+		boardState._pieces[y * BOARD_LENGTH + 4] = PieceCode::EMPTY;
+		boardState._pieces[y * BOARD_LENGTH] = PieceCode::EMPTY;
+		boardState._kingMoved[boardState._turn] = true;
+		boardState._qRookMoved[boardState._turn] = true;
+		return;
+	}
+
+	if (move.shortCastle)
+	{
+		int y = boardState._turn ? BOARD_LENGTH - 1 : 0;
+		boardState._pieces[y * BOARD_LENGTH + 6] = boardState._pieces[y * BOARD_LENGTH + 4];
+		boardState._pieces[y * BOARD_LENGTH + 5] = boardState._pieces[y * BOARD_LENGTH + 7];
+		boardState._pieces[y * BOARD_LENGTH + 4] = PieceCode::EMPTY;
+		boardState._pieces[y * BOARD_LENGTH + 7] = PieceCode::EMPTY;
+		boardState._kingMoved[boardState._turn] = true;
+		boardState._kRookMoved[boardState._turn] = true;
+		return;
+	}
+
+	PieceCode piece = boardState._pieces[move.yStart * BOARD_LENGTH + move.xStart];
+	if (piece == PieceCode::W_KING || piece == PieceCode::B_KING)
+		boardState._kingMoved[boardState._turn] = true;
+	else if (piece == PieceCode::W_ROOK || piece == PieceCode::B_ROOK)
+	{
+		if (move.xStart == 0)
+			boardState._qRookMoved[boardState._turn] = true;
+		if (move.xStart == 7)
+			boardState._kRookMoved[boardState._turn] = true;
+	}
+
+	boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd] = boardState._pieces[move.yStart * BOARD_LENGTH + move.xStart];
+	boardState._pieces[move.yStart * BOARD_LENGTH + move.xStart] = PieceCode::EMPTY;
+	if (move.upgrade != PieceCode::EMPTY)
+		boardState._pieces[move.yEnd * BOARD_LENGTH + move.xEnd] = move.upgrade;
+	if (move.enPassant)
+		boardState._pieces[move.yStart * BOARD_LENGTH + move.xEnd] = PieceCode::EMPTY;
+	if (move.doublePawnMove)
+		boardState._enPassant = move.xStart;
+	else
+		boardState._enPassant = -1;
+	boardState._turn = (boardState._turn + 1) % 2;
+}
+
+void nvc::Chess::checkWinner(Game& game)
+{
+	PieceCode king = game._boardState._turn ? PieceCode::B_KING : PieceCode::W_KING;
+	int kingCoord[2];
+	findKing(game._boardState._pieces, game._boardState._turn, kingCoord);
+	std::vector<MoveData> moves = genRawMoves(game._boardState);
+	filterMoves(game._boardState, moves);
+	if (moves.size() == 0)
+	{
+		if (game._boardState._turn == 0)
+			game._blackWin = true;
+		else
+			game._whiteWin = true;
+	}
+}
+
+void nvc::Chess::findKing(const PieceCode pieces[], int turn, int* coord)
+{
+	PieceCode king = turn ? PieceCode::B_KING : PieceCode::W_KING;
+	for (int y = 0; y < BOARD_LENGTH; ++y)
+	{
+		for (int x = 0; x < BOARD_LENGTH; ++x)
+		{
+			if (pieces[y * BOARD_LENGTH + x] == king)
+			{
+				coord[0] = x;
+				coord[1] = y;
+				return;
+			}
+		}
+	}
+}
+
+void nvc::Chess::filterMoves(const BoardState& boardState, std::vector<MoveData>& moves)
+{
+	BoardState temp;
+	PieceCode kingCode = boardState._turn ? PieceCode::B_KING : PieceCode::W_KING;
+	bool kingThreatened;
+	int kingPos[2] = { 0, 0 };
+	int kingPosMoved[2] = { 0, 0 };
+	findKing(boardState._pieces, boardState._turn, kingPos);
+	for (auto it = moves.begin(); it != moves.end();)
+	{
+		temp.copy(boardState);
+		playMove(temp, *it);
+		if (temp._pieces[kingPos[1] * BOARD_LENGTH + kingPos[0]] == kingCode)
+			kingThreatened = squareThreatened(boardState, kingPos[0], kingPos[1]);
+		else
+		{
+			findKing(temp._pieces, boardState._turn, kingPosMoved);
+			kingThreatened = squareThreatened(boardState, kingPosMoved[0], kingPosMoved[1]);
+		}
+		if (kingThreatened)
+			it = moves.erase(it);
+		else
+			++it;
+	}
+}
