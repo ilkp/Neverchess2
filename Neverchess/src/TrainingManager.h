@@ -18,7 +18,6 @@ namespace nvc
 		int _nRandomMoves;
 		int _nMaxMoves;
 		int _trainSampleRate;
-		int _abDepth;
 	};
 
 	class TrainingManager
@@ -31,7 +30,6 @@ namespace nvc
 			_nRandomMoves = createInfo._nRandomMoves;
 			_nMaxMoves = createInfo._nMaxMoves;
 			_trainSampleRate = createInfo._trainSampleRate;
-			_abDepth = createInfo._abDepth;
 		}
 		void generateGames(simpleANN::ANNetwork& ann);
 		void train(simpleANN::ANNetwork& ann);
@@ -64,6 +62,5 @@ namespace nvc
 		void insertHashedBoardState(uint32_t hash, float value);
 		void playRandomStartMoves(nvc::Game& game);
 		float evaluate(const BoardState& boardState, simpleANN::ANNetwork& network, float* networkInputArray);
-		float alphaBeta(const BoardState& boardState);
 	};
 }

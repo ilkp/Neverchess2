@@ -340,15 +340,6 @@ void nvc::TrainingManager::playRandomStartMoves(nvc::Game& game)
 void nvc::TrainingManager::train(simpleANN::ANNetwork& ann)
 {
 	float input[ANN_INPUT_LENGTH];
-	for (Game game : _games)
-	{
-
-	}
-}
-
-void nvc::TrainingManager::train(simpleANN::ANNetwork& ann)
-{
-	float input[ANN_INPUT_LENGTH];
 	float average = (HIGH_LABEL + LOW_LABEL) * 0.5f;
 	int totalBatchSize = 0;
 	float label;
@@ -420,9 +411,4 @@ float nvc::TrainingManager::evaluate(const BoardState& boardState, simpleANN::AN
 	float output = network._outputLayer->_outputs[0];
 	network.outputWasRead();
 	return output;
-}
-
-float nvc::TrainingManager::alphaBeta(const BoardState& boardState)
-{
-
 }

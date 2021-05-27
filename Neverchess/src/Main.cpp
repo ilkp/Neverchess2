@@ -19,7 +19,6 @@ int main()
 	tmCreateInfo._nMaxMoves = 50;
 	tmCreateInfo._nRandomMoves = 4;
 	tmCreateInfo._trainSampleRate = 5;
-	tmCreateInfo._abDepth = 5;
 
 	simpleANN::ANNetwork ann(annCreateInfo);
 	nvc::TrainingManager tm(tmCreateInfo);
