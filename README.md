@@ -1,7 +1,7 @@
 # Neverchess2
 
 Neural network training programs for chess. 
-Neural network stuff can be found here https://github.com/ilkp/SimpleANN/blob/main/SimpleANN.h
+Neural network stuff can be found here https://github.com/ilkp/SimpleANN
 
 To do
 
