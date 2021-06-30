@@ -1,12 +1,16 @@
 
-#include "TrainingManager.h"
 #include <iostream>
+#include "TrainingManager.h"
 
 int main()
 {
 	srand(time(NULL));
-	int batchSize = std::thread::hardware_concurrency();
-	int totalGames = 32768;
+	std::chrono::steady_clock::time_point begin;
+	std::chrono::steady_clock::time_point batchBegin;
+	std::chrono::steady_clock::time_point batchEnd;
+	std::chrono::steady_clock::time_point end;
+	const int batchSize = 1;
+	const int totalGames = 32768;
 
 	simpleANN::CreateInfo annCreateInfo;
 	annCreateInfo._inputSize = nvc::ANN_INPUT_LENGTH;
@@ -23,11 +27,7 @@ int main()
 	simpleANN::ANNetwork ann(annCreateInfo);
 	nvc::TrainingManager tm(tmCreateInfo);
 
-	std::chrono::steady_clock::time_point begin = std::chrono::steady_clock::now();
-	std::chrono::steady_clock::time_point batchBegin;
-	std::chrono::steady_clock::time_point batchEnd;
-	std::chrono::steady_clock::time_point end;
-
+	begin = std::chrono::steady_clock::now();
 	for (int i = 0; i < totalGames; i += batchSize)
 	{
 		batchBegin = std::chrono::steady_clock::now();
@@ -36,11 +36,12 @@ int main()
 		batchEnd = std::chrono::steady_clock::now();
 		std::cout << "Batch finished - Played Games: " << i + batchSize
 			<< " - Elapsed time: " << std::chrono::duration_cast<std::chrono::milliseconds>(batchEnd - batchBegin).count() << "ms"
-			<< " - Total time: " << std::chrono::duration_cast<std::chrono::seconds>(batchEnd - begin).count() << "s" << std::endl;
+			<< " - Total time: " << std::chrono::duration_cast<std::chrono::seconds>(batchEnd - begin).count() << "s"
+			<< std::endl;
 	}
 	end = std::chrono::steady_clock::now();
 	std::cout << "All batched finished - Total time: " << std::chrono::duration_cast<std::chrono::seconds>(end - begin).count() << "s" << std::endl;
-	tm.exportANN(ann, "16384");
+	tm.exportANN(ann, std::to_string(totalGames));
 	int exit;
 	std::cin >> exit;
 }
