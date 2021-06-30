@@ -9,7 +9,7 @@ int main()
 	std::chrono::steady_clock::time_point batchBegin;
 	std::chrono::steady_clock::time_point batchEnd;
 	std::chrono::steady_clock::time_point end;
-	const int batchSize = 1;
+	const int batchSize = std::thread::hardware_concurrency();// 1;
 	const int totalGames = 32768;
 
 	simpleANN::CreateInfo annCreateInfo;

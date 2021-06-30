@@ -9,7 +9,7 @@ namespace nvc
 	public:
 		static int pieceCodeToSide(const PieceCode& pieceCode);
 		static std::vector<MoveData> genRawMoves(const BoardState& boardStateData);
-		static bool squareThreatened(const BoardState& boardState, int xTarget, int yTarget);
+		static bool squareThreatened(const PieceCode pieces[], int myTurn, int xTarget, int yTarget);
 		static void playMove(BoardState& boardState, const MoveData& move);
 		static void playMove(Game& game, const MoveData& move);
 		static void filterMoves(const BoardState& boardState, std::vector<MoveData>& moves);
@@ -30,13 +30,13 @@ namespace nvc
 		static bool shortCastleAvailable(const BoardState& boardState);
 		static bool longCastleAvailable(const BoardState& boardState);
 
-		static bool pieceCanThreatenSquare(const BoardState& boardState, int xPiece, int yPiece, int xTarget, int yTarget);
+		static bool pieceCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget);
 		static bool kingCanThreatenSquare(int xPiece, int yPiece, int xTarget, int yTarget);
 		static bool queenCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget);
 		static bool bishopCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget);
 		static bool knightCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget);
 		static bool rookCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget);
-		static bool pawnCanThreatenSquare(int turn, int xPiece, int yPiece, int xTarget, int yTarget);
+		static bool pawnCanThreatenSquare(const PieceCode pieces[], int xPiece, int yPiece, int xTarget, int yTarget);
 
 		static bool moveIsLegalKing(const BoardState& boardState, const MoveData& move);
 		static bool moveIsLegalQueen(const BoardState& boardState, const MoveData& move);

@@ -262,18 +262,25 @@ void nvc::TrainingManager::insertHashedBoardState(uint32_t hash, float value)
 
 void nvc::TrainingManager::generateGames(simpleANN::ANNetwork& ann)
 {
-	std::vector<std::thread> threads;
+	std::vector<std::future<Game*>> fut(_nGames);
 	_hashedEvaluations.clear();
-	for (Game game : _games)
+	for (Game* game : _games)
+		delete(game);
+	_games.clear();
+	for (int i = 0; i < fut.size(); ++i)
 	{
-		game.reset();
-		threads.push_back(std::thread([&]() { processGame(game, ann); }));
+		fut[i] = std::async(std::launch::async, [&]() { return processGame(ann); });
 	}
-	for (std::thread& thread : threads) thread.join();
+	for (int i = 0; i < fut.size(); ++i)
+	{
+		fut[i].wait();
+		_games.push_back(fut[i].get());
+	}
 }
 
-void nvc::TrainingManager::processGame(Game& game, simpleANN::ANNetwork& ann)
+nvc::Game* nvc::TrainingManager::processGame(simpleANN::ANNetwork& ann)
 {
+	Game* game = new Game();
 	std::vector<MoveData> moves;
 	BoardState temp;
 	uint32_t boardHash;
@@ -284,20 +291,20 @@ void nvc::TrainingManager::processGame(Game& game, simpleANN::ANNetwork& ann)
 	MoveData* bestMove;
 	int nMove = 0;
 
-	playRandomStartMoves(game);
-	while (!game._whiteWin && !game._blackWin && !game._draw)
+	playRandomStartMoves(*game);
+	while (!(*game)._whiteWin && !(*game)._blackWin && !(*game)._draw)
 	{
-		moves = Chess::genRawMoves(game._boardState);
-		Chess::filterMoves(game._boardState, moves);
+		moves = Chess::genRawMoves((*game)._boardState);
+		Chess::filterMoves((*game)._boardState, moves);
 		if (moves.empty())
-			nvc::Chess::checkWinner(game);
+			nvc::Chess::checkWinner((*game));
 		else
 		{
-			bestEvaluation = game._boardState._turn == 0 ? 10000.0f : -10000.0f;
+			bestEvaluation = (*game)._boardState._turn == 0 ? 10000.0f : -10000.0f;
 			bestMove = &moves[0];
 			for (MoveData move : moves)
 			{
-				temp.copy(game._boardState);
+				temp.copy((*game)._boardState);
 				nvc::Chess::playMove(temp, move);
 				boardHash = hashBoard(temp);
 				hashedEvaluation = findHashedBoardState(boardHash);
@@ -308,22 +315,23 @@ void nvc::TrainingManager::processGame(Game& game, simpleANN::ANNetwork& ann)
 					evaluation = evaluate(temp, ann, annInput);
 					insertHashedBoardState(boardHash, evaluation);
 				}
-				if (game._boardState._turn == WHITE && evaluation < bestEvaluation || game._boardState._turn == BLACK && evaluation > bestEvaluation)
+				if ((*game)._boardState._turn == WHITE && evaluation < bestEvaluation || (*game)._boardState._turn == BLACK && evaluation > bestEvaluation)
 				{
 					bestEvaluation = evaluation;
 					bestMove = &move;
 				}
 			}
-			nvc::Chess::playMove(game, *bestMove);
+			nvc::Chess::playMove((*game), *bestMove);
 
 			// End game as a draw if dublicate of a previous position or maximum move count is reached
-			boardHash = hashBoard(game._boardState);
-			if (game._pastBoardHashes.find(boardHash) != game._pastBoardHashes.end() || ++nMove > _nMaxMoves)
-				game._draw = true;
+			boardHash = hashBoard((*game)._boardState);
+			if ((*game)._pastBoardHashes.find(boardHash) != (*game)._pastBoardHashes.end() || ++nMove > _nMaxMoves)
+				(*game)._draw = true;
 			else
-				game._pastBoardHashes.insert(boardHash);
+				(*game)._pastBoardHashes.insert(boardHash);
 		}
 	}
+	return game;
 }
 
 void nvc::TrainingManager::playRandomStartMoves(nvc::Game& game)
@@ -344,23 +352,23 @@ void nvc::TrainingManager::train(simpleANN::ANNetwork& ann)
 	int totalBatchSize = 0;
 	float label;
 	float slope;
-	for (Game game : _games)
+	for (Game* game : _games)
 	{
-		totalBatchSize += game._moves.size();
-		if (game._whiteWin)
+		totalBatchSize += game->_moves.size();
+		if (game->_whiteWin)
 			label = LOW_LABEL;
-		else if (game._blackWin)
+		else if (game->_blackWin)
 			label = HIGH_LABEL;
 		else
 			label = average;
-		slope = (label - average) / game._moves.size();
+		slope = (label - average) / game->_moves.size();
 
-		game._boardState.resetBoardState();
-		for (unsigned int i = 0; i < game._moves.size(); ++i)
+		game->_boardState.resetBoardState();
+		for (unsigned int i = 0; i < game->_moves.size(); ++i)
 		{
 			label = slope * i + average;
-			nvc::Chess::playMove(game._boardState, game._moves[i]);
-			boardStateToNetworkInput(game._boardState, input);
+			nvc::Chess::playMove(game->_boardState, game->_moves[i]);
+			boardStateToNetworkInput(game->_boardState, input);
 			ann.propagateForward(input);
 			ann.outputWasRead();
 			ann.propagateBackward(&label);

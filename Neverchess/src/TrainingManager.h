@@ -26,7 +26,7 @@ namespace nvc
 		TrainingManager(const TrainingManagerCreateInfo createInfo)
 		{
 			initializeZobristValues();
-			_games.resize(createInfo._nGames);
+			_nGames = createInfo._nGames;
 			_nRandomMoves = createInfo._nRandomMoves;
 			_nMaxMoves = createInfo._nMaxMoves;
 			_trainSampleRate = createInfo._trainSampleRate;
@@ -37,10 +37,11 @@ namespace nvc
 		void exportANN(simpleANN::ANNetwork& network, std::string fileName);
 		void printBoard(const BoardState& boardState) const;
 		//AnnUtilities::Network importANN			(std::string fileName);
-		std::vector<Game> _games;
+		std::vector<Game*> _games;
 
 	private:
 		std::mutex _hashTableLock;
+		int _nGames;
 		int _nRandomMoves;
 		int _nMaxMoves;
 		int _trainSampleRate;
@@ -53,7 +54,7 @@ namespace nvc
 		uint32_t _zobristEnPassantValues[9] = { 0 };
 		std::unordered_map<uint32_t, float> _hashedEvaluations;
 
-		void processGame(Game& game, simpleANN::ANNetwork& ann);
+		nvc::Game* processGame(simpleANN::ANNetwork& ann);
 		void initializeZobristValues();
 		bool zobristValueExists(uint32_t value);
 		uint32_t hashBoard(const BoardState& boardState);

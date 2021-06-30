@@ -169,6 +169,11 @@ namespace nvc
 		std::vector<MoveData> _moves;
 		std::set<uint32_t> _pastBoardHashes;
 
+		Game()
+		{
+			_boardState.resetBoardState();
+		}
+
 		void reset()
 		{
 			_whiteWin = false;
